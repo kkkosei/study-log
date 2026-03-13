@@ -134,3 +134,18 @@ export async function getProjectSummary(req: Request, res: Response) {
     return res.status(500).json({ error: "Failed to get project summary" });
   }
 }
+
+export async function getProjectTasksSummary(req: Request, res: Response) {
+  try {
+    const { userId } = getAuth(req);
+    if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+    const { id } = req.params;
+    const tasks = await queries.getTasksTimeByProjectId(String(id), userId);
+
+    return res.status(200).json(tasks);
+  } catch (e) {
+    console.error("Error getting project tasks summary:", e);
+    return res.status(500).json({ error: "Failed to get project tasks summary" });
+  }
+}

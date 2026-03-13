@@ -15,6 +15,13 @@
       "when": 1771249933453,
       "tag": "0001_faulty_calypso",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1773405404069,
+      "tag": "0002_gorgeous_silver_centurion",
+      "breakpoints": true
     }
   ]
 }

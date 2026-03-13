@@ -5,6 +5,7 @@ import { useAuth } from "@clerk/clerk-react";
 import { useProject, useDeleteProject } from "../hooks/useProjects";
 import { useParams, Link, useNavigate } from "react-router";
 import { useProjectSummary } from "../hooks/useProjectSummary";
+import { useProjectTasksSummary } from "../hooks/useProjectTasksSummary";
 import { formatDuration } from "../lib/format";
 
 function ProjectPage() {
@@ -15,6 +16,7 @@ function ProjectPage() {
   const { data: project, isLoading, error } = useProject(id);
   const deleteProject = useDeleteProject();
   const summaryQ = useProjectSummary(id);
+  const tasksSummaryQ = useProjectTasksSummary(id);
 
   const handleDelete = () => {
     if (confirm("Delete this project permanently?")) {
@@ -118,14 +120,32 @@ function ProjectPage() {
       </div>
 
       {isOwner && (
-        <div className="stats bg-base-200 my-4">
-          <div className="stat">
-            <div className="stat-title">Total Study Time</div>
-            <div className="stat-value text-primary">
-              {summaryQ.isLoading
-                ? "..."
-                : formatDuration(summaryQ.data?.totalSeconds)}
+        <div className="card bg-base-300">
+          <div className="card-body gap-4">
+            <div>
+              <p className="text-sm text-base-content/60">Total Study Time</p>
+              <p className="text-5xl font-bold text-primary">
+                {summaryQ.isLoading ? "..." : formatDuration(summaryQ.data?.totalSeconds)}
+              </p>
             </div>
+
+            {tasksSummaryQ.data?.some((t) => t.totalSeconds > 0) && (
+              <div className="space-y-2">
+                <p className="text-xs font-semibold text-base-content/50 uppercase tracking-wide">task summary</p>
+                <div className="grid grid-cols-3 gap-2">
+                  {tasksSummaryQ.data
+                    .filter((t) => t.totalSeconds > 0)
+                    .map((t) => (
+                      <div key={t.taskId} className="card bg-base-100 px-4 py-3">
+                        <span className="truncate text-sm text-base-content/80 mb-1">{t.title}</span>
+                        <span className="font-mono text-lg font-bold text-primary">
+                          {formatDuration(t.totalSeconds)}
+                        </span>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

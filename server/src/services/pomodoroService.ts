@@ -125,13 +125,17 @@ export async function pause(userId: string) {
     const elapsedSecRaw = Math.max(0, Math.floor((now.getTime() - startedAt.getTime()) / 1000));
     const elapsedSec = clamp(elapsedSecRaw, 0, settings.workSec);
     if (elapsedSec > 0) {
-      await queries.insertTimerSession({
-        userId,
-        taskId: state.taskId,
-        startedAt,
-        endedAt: now,
-        durationSec: elapsedSec,
-      });
+      const task = await queries.getTaskOwnedByUser(state.taskId, userId);
+      if (task) {
+        await queries.insertTimerSession({
+          userId,
+          taskId: state.taskId,
+          projectId: task.projectId,
+          startedAt,
+          endedAt: now,
+          durationSec: elapsedSec,
+        });
+      }
     }
   }
 
@@ -190,25 +194,23 @@ export async function complete(userId: string) {
 
   const now = new Date();
 
-  if (phase === "work" && state.status === "running") {
-    if (!state.startedAt) throw new Error("startedAt missing");
-    if (!state.taskId) throw new Error("taskId missing");
-
+  if (phase === "work" && state.status === "running" && state.startedAt && state.taskId) {
     const owned = await queries.getTaskOwnedByUser(state.taskId, userId);
-    if (!owned) throw new Error("Task not found");
+    if (owned) {
+      const startedAt = new Date(state.startedAt);
+      const elapsed = Math.floor((now.getTime() - startedAt.getTime()) / 1000);
+      const duration = clamp(elapsed, 0, settings.workSec);
 
-    const startedAt = new Date(state.startedAt);
-    const elapsed = Math.floor((now.getTime() - startedAt.getTime()) / 1000);
-    const duration = clamp(elapsed, 0, settings.workSec);
-
-    if (duration > 0) {
-      await queries.insertTimerSession({
-        userId,
-        taskId: state.taskId,
-        startedAt,
-        endedAt: now,
-        durationSec: duration,
-      });
+      if (duration > 0) {
+        await queries.insertTimerSession({
+          userId,
+          taskId: state.taskId,
+          projectId: owned.projectId,
+          startedAt,
+          endedAt: now,
+          durationSec: duration,
+        });
+      }
     }
   }
 
@@ -275,13 +277,17 @@ export async function switchPhase(
     const elapsedSec = clamp(elapsedSecRaw, 0, settings.workSec);
 
     if (elapsedSec > 0) {
-      await queries.insertTimerSession({
-        userId,
-        taskId: state.taskId,
-        startedAt,
-        endedAt: now,
-        durationSec: elapsedSec,
-      });
+      const task = await queries.getTaskOwnedByUser(state.taskId, userId);
+      if (task) {
+        await queries.insertTimerSession({
+          userId,
+          taskId: state.taskId,
+          projectId: task.projectId,
+          startedAt,
+          endedAt: now,
+          durationSec: elapsedSec,
+        });
+      }
     }
   }
 
