@@ -51,8 +51,9 @@ export const timerSessions = pgTable("timer_sessions", {
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
   taskId: uuid("task_id")
-    .notNull()
-    .references(() => tasks.id, { onDelete: "cascade" }),
+    .references(() => tasks.id, { onDelete: "set null" }),
+  projectId: uuid("project_id")
+    .references(() => projects.id, { onDelete: "cascade" }),
   startedAt: timestamp("started_at", { mode: "date" }).notNull(),
   endedAt: timestamp("ended_at", { mode: "date" }),
   durationSec: integer("duration_sec")
@@ -167,6 +168,10 @@ export const timerSessionsRelations = relations(timerSessions, ({ one }) => ({
   task: one(tasks, {
     fields: [timerSessions.taskId],
     references: [tasks.id],
+  }),
+  project: one(projects, {
+    fields: [timerSessions.projectId],
+    references: [projects.id],
   }),
 }));
 

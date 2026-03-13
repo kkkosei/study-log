@@ -110,10 +110,26 @@ export const getProjectTotalTime = async (projectId: string, userId: string) => 
       total: sql<number>`coalesce(sum(${timerSessions.durationSec}), 0)`,
     })
     .from(timerSessions)
-    .innerJoin(tasks, eq(timerSessions.taskId, tasks.id))
-    .where(and(eq(tasks.projectId, projectId), eq(timerSessions.userId, userId)));
+    .where(and(eq(timerSessions.projectId, projectId), eq(timerSessions.userId, userId)));
 
   return result[0]?.total ?? 0;
+};
+
+export const getTasksTimeByProjectId = async (projectId: string, userId: string) => {
+  return db
+    .select({
+      taskId: tasks.id,
+      title: tasks.title,
+      status: tasks.status,
+      totalSeconds: sql<number>`coalesce(sum(${timerSessions.durationSec}), 0)`,
+    })
+    .from(tasks)
+    .leftJoin(
+      timerSessions,
+      and(eq(timerSessions.taskId, tasks.id), eq(timerSessions.userId, userId))
+    )
+    .where(and(eq(tasks.projectId, projectId), eq(tasks.userId, userId)))
+    .groupBy(tasks.id, tasks.title, tasks.status);
 };
 
 // Task Queries
@@ -175,7 +191,7 @@ export const getCurrentTimerSession = async (userId: string) => {
   });
 };
 
-export const startTimerSession = async (userId: string, taskId: string) => {
+export const startTimerSession = async (userId: string, taskId: string, projectId: string) => {
   const existing = await getCurrentTimerSession(userId);
    if (existing) {
      throw new Error("A timer session is already running");
@@ -184,6 +200,7 @@ export const startTimerSession = async (userId: string, taskId: string) => {
     .values({
       userId,
       taskId,
+      projectId,
       startedAt: new Date(),
     })
     .returning();
@@ -293,6 +310,7 @@ export const updatePomodoroStateByUserId = async (
 export const insertTimerSession = async (data: {
   userId: string;
   taskId: string;
+  projectId: string;
   startedAt: Date;
   endedAt: Date;
   durationSec: number;

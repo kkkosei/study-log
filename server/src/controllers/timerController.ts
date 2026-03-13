@@ -37,7 +37,10 @@ export async function startTimer(req: Request, res: Response) {
     const { taskId } = req.body;
     if (!taskId) return res.status(400).json({ error: "taskId is required" });
 
-    const session = await queries.startTimerSession(userId, taskId);
+    const task = await queries.getTaskOwnedByUser(taskId, userId);
+    if (!task) return res.status(404).json({ error: "Task not found" });
+
+    const session = await queries.startTimerSession(userId, taskId, task.projectId);
     return res.status(201).json(session);
 
   } catch (e: any) {

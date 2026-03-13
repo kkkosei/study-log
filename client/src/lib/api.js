@@ -42,6 +42,11 @@ export const getProjectSummary = async (projectId) => {
   return data; // { totalSeconds }
 };
 
+export const getProjectTasksSummary = async (projectId) => {
+  const { data } = await api.get(`/projects/${projectId}/tasks-summary`);
+  return data; // [{ taskId, title, status, totalSeconds }]
+};
+
 // tasks api
 export const getTasksByProject = async (projectId) => {
   const { data } = await api.get(`/projects/${projectId}/tasks`);
