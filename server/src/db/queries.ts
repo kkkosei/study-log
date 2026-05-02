@@ -9,7 +9,6 @@ import {
   type NewUser, 
   type NewProject, 
   type NewTask,
-  type NewTimerSession,
   type NewComment, 
   pomodoroSettings,
   pomodoroState

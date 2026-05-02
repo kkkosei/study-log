@@ -18,6 +18,7 @@
   "dependencies": {
     "@clerk/express": "^1.7.60",
     "cors": "^2.8.5",
+    "cron": "^4.4.0",
     "dotenv": "^17.2.3",
     "drizzle-orm": "^0.44.7",
     "express": "^5.2.1",

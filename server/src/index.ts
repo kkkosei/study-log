@@ -4,6 +4,7 @@ import path from "path";
 
 import { ENV } from "./config/env";
 import { clerkMiddleware } from '@clerk/express'
+import keepAliveCron from "./config/cron";
 
 import userRoutes from "./routes/userRoutes";
 import projectRoutes from "./routes/projectRoutes";
@@ -22,6 +23,10 @@ app.use(cors({origin:ENV.FRONTEND_URL, credentials:true})); // enable CORS
 app.use(clerkMiddleware()); // auth obj will be attached to req
 app.use(Express.json()); // parses json requests bodies
 app.use(Express.urlencoded({ extended: true })); // parses from data (like HTML forms)
+
+app.get("/health", (req, res) => {
+  res.json({ ok: true});
+});
 
 app.get("/api/health", (req, res) => {
   res.json({ 
@@ -57,4 +62,7 @@ if(ENV.NODE_ENV == "production"){
 
 app.listen(ENV.PORT, () => {
   console.log(`Server is running on port ${ENV.PORT}`);
+  if (ENV.NODE_ENV === "production") {
+    keepAliveCron.start()
+  }
 });
